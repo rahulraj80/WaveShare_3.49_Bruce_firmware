@@ -7,12 +7,42 @@
 #include "freertos/semphr.h"
 #include "freertos/task.h"
 static SemaphoreHandle_t tftMutex;
+
+#if defined(TFT_FULLFRAME_CANVAS)
+// For panels that only accept whole frames (e.g. AXS15231B over QSPI): every
+// draw goes to a PSRAM canvas, and a task pushes the canvas to the panel when
+// something changed, at most TFT_FULLFRAME_FPS times a second.
+#include <canvas/Arduino_Canvas.h>
+#ifndef TFT_FULLFRAME_FPS
+#define TFT_FULLFRAME_FPS 30
+#endif
+static volatile bool canvasDirty = true;
+#define MARK_CANVAS_DIRTY() canvasDirty = true
+
+static void canvasFlushTask(void *param) {
+    Arduino_Canvas *canvas = static_cast<Arduino_Canvas *>(param);
+    for (;;) {
+        if (canvasDirty) {
+            xSemaphoreTakeRecursive(tftMutex, portMAX_DELAY);
+            canvasDirty = false;
+            canvas->flush();
+            xSemaphoreGiveRecursive(tftMutex);
+        }
+        vTaskDelay(pdMS_TO_TICKS(1000 / TFT_FULLFRAME_FPS));
+    }
+}
+#else
+#define MARK_CANVAS_DIRTY()
+#endif
+
 #define RUN_ON_MUTEX(fn)                                                                                     \
     xSemaphoreTakeRecursive(tftMutex, portMAX_DELAY);                                                        \
     fn;                                                                                                      \
+    MARK_CANVAS_DIRTY();                                                                                     \
     xSemaphoreGiveRecursive(tftMutex);
 
 tft_display::tft_display(int16_t _W, int16_t _H) : _height(_H), _width(_W) {
+    if (!tftMutex) tftMutex = xSemaphoreCreateRecursiveMutex();
     // clang-format off
 #if TFT_DATABUS_N == 3
     #if TFT_DISPLAY_DRIVER_N != 49
@@ -128,6 +158,11 @@ tft_display::tft_display(int16_t _W, int16_t _H) : _height(_H), _width(_W) {
     );
 #endif
 
+#if defined(TFT_FULLFRAME_CANVAS)
+    // The driver above stays unrotated (TFT_ROTATION 0); the canvas in front of
+    // it owns the rotation and hands the panel native-orientation frames.
+    _gfx = new Arduino_Canvas(TFT_WIDTH, TFT_HEIGHT, _gfx);
+#endif
 }
 // clang-format on
 void tft_display::begin(uint32_t speed) {
@@ -136,6 +171,10 @@ void tft_display::begin(uint32_t speed) {
         _gfx->begin();
         _width = _gfx->width();
         _height = _gfx->height();
+#if defined(TFT_FULLFRAME_CANVAS)
+        static TaskHandle_t flushTask = nullptr;
+        if (!flushTask) xTaskCreate(canvasFlushTask, "tftFlush", 3072, _gfx, 2, &flushTask);
+#endif
     }
 }
 
@@ -378,6 +417,7 @@ size_t tft_display::write(const uint8_t *buffer, size_t size) {
     size_t written = 0;
     xSemaphoreTakeRecursive(tftMutex, portMAX_DELAY);
     for (size_t i = 0; i < size; ++i) { written += _gfx->write(buffer[i]); }
+    MARK_CANVAS_DIRTY();
     xSemaphoreGiveRecursive(tftMutex);
     return written;
 }
