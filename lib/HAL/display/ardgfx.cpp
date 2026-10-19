@@ -473,7 +473,8 @@ int16_t tft_display::fontHeight(int16_t font) const {
     return static_cast<int16_t>(_textSize * 8);
 }
 
-Arduino_GFX *tft_display::native() { return nullptr; }
+// With TFT_FULLFRAME_CANVAS this is the canvas (serial `screenshot` reads it).
+Arduino_GFX *tft_display::native() { return _gfx; }
 
 void tft_display::drawWideLineFallback(float ax, float ay, float bx, float by, float wd, uint32_t color) {
     if (!_gfx) return;
