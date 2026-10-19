@@ -91,7 +91,13 @@ public:
     uint16_t badUSBBLEKeyDelay = 10;
     bool badUSBBLEShowOutput = true;
 
+#ifdef DEFAULT_DISABLED_MENUS
+    // Board without the hardware for these menus: hidden until shown again from
+    // the hide-apps menu (pins_arduino.h, e.g. {"RF", "NRF24"}).
+    std::vector<String> disabledMenus = DEFAULT_DISABLED_MENUS;
+#else
     std::vector<String> disabledMenus = {};
+#endif
 
     std::vector<QrCodeEntry> qrCodes = {
         {"Bruce AP",   "WIFI:T:WPA;S:BruceNet;P:brucenet;;"},
