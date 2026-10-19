@@ -18,6 +18,17 @@ uint32_t sleepCallback(cmd *c) {
     return true;
 }
 
+// Launcher's bootloader starts the Launcher after a deep-sleep wake (and the
+// installed app after a soft restart), so a short sleep hands control back.
+// Without the Launcher this is just a reboot.
+uint32_t launcherCallback(cmd *c) {
+    Serial.println("Rebooting to the Launcher...");
+    delay(100);
+    esp_sleep_enable_timer_wakeup(100 * 1000);
+    esp_deep_sleep_start();
+    return true;
+}
+
 void createPoweroffCommand(SimpleCLI *cli) { Command cmd = cli->addCommand("poweroff", poweroffCallback); }
 
 void createRebootCommand(SimpleCLI *cli) { Command cmd = cli->addCommand("reboot", rebootCallback); }
@@ -36,6 +47,7 @@ void createPowerCommands(SimpleCLI *cli) {
     createPoweroffCommand(cli);
     createRebootCommand(cli);
     createSleepCommand(cli);
+    cli->addCommand("launcher", launcherCallback);
 
     createPowerCommand(cli);
 }
