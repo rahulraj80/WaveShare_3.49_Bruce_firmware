@@ -28,19 +28,25 @@ StartupApp::StartupApp() {
 #ifndef LITE_VERSION
     _startupApps["Brucegotchi"] = []() { brucegotchi_start(); };
     _startupApps["Sniffer"] = []() { sniffer_setup(); };
+#if !defined(DISABLE_ADDON_MODULES)
     _startupApps["GPS Tracker"] = []() { GPSTracker(); };
     _startupApps["PN532 BLE"] = []() { Pn532ble(); };
     _startupApps["PN532 UART"] = []() { PN532KillerTools(); };
 #endif
+#endif
     _startupApps["Clock"] = []() { runClockLoop(); };
+#if !defined(DISABLE_ADDON_MODULES)
     _startupApps["Custom SubGHz"] = []() { sendCustomRF(); };
+#endif
 #if defined(SOC_USB_OTG_SUPPORTED)
     _startupApps["Mass Storage"] = []() { MassStorage(); };
 #endif
+#if !defined(DISABLE_ADDON_MODULES)
     _startupApps["Wardriving"] = []() { Wardriving(true, true); };
     _startupApps["WardrivingNoRadio"] = []() { Wardriving(); };
     _startupApps["WardrivingBTEOnly"] = []() { Wardriving(false, true); };
     _startupApps["WardrivingWifiOnly"] = []() { Wardriving(true, false); };
+#endif
     _startupApps["WebUI"] = []() { startWebUi(!wifiConnecttoKnownNet()); };
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
     _startupApps["JS Interpreter"] = []() {

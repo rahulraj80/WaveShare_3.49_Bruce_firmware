@@ -2474,6 +2474,10 @@ bool MultiConnectionAttack::advertisingSpam(std::vector<NimBLEAddress> targets) 
 }
 
 bool MultiConnectionAttack::nrf24JamAttack(int jamMode) {
+#if defined(DISABLE_ADDON_MODULES)
+    showAttackResult(false, "NRF24 support not built");
+    return false;
+#else
     AutoCleanup cleanup([]() { BLEStateManager::deinitBLE(true); });
 
     if (!confirmAttack("Jam BLE frequencies? This may disrupt nearby devices.")) return false;
@@ -2516,6 +2520,7 @@ bool MultiConnectionAttack::nrf24JamAttack(int jamMode) {
     }
     showAttackResult(false, "Failed to start BLE jamming");
     return false;
+#endif
 }
 
 bool MultiConnectionAttack::jamAndConnect(NimBLEAddress target) {

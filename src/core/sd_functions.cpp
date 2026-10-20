@@ -839,6 +839,7 @@ String loopSD(FS &fs, bool filePicker, const String &allowed_ext, String rootPat
                                                              while (!check(AnyKeyPress))
                                                                  vTaskDelay(10 / portTICK_PERIOD_MS);
                                                          }});
+#if !defined(DISABLE_ADDON_MODULES)
                     if (filepath.endsWith(".ir")) {
                         options.insert(options.begin(), {"IR Choose cmd", [&]() {
                                                              delay(200);
@@ -879,6 +880,7 @@ String loopSD(FS &fs, bool filePicker, const String &allowed_ext, String rootPat
                                                              wdg.upload_all(&fs, Folder);
                                                          }});
                     }
+#endif
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
                     if (filepath.endsWith(".bjs") || filepath.endsWith(".js")) {
                         options.insert(options.begin(), {"JS Script Run", [&]() {

@@ -7,6 +7,7 @@ MainMenu::MainMenu() {
     _menuItems = {
         &wifiMenu,
         &bleMenu,
+#if !defined(DISABLE_ADDON_MODULES) // fork: add-on radio/IR/RFID/GPS/Ethernet modules compiled out
         &rfMenu,
         &nrf24Menu,
 #if !defined(LITE_VERSION)
@@ -21,6 +22,7 @@ MainMenu::MainMenu() {
 #endif
         &gpsMenu,
         &rfidMenu,
+#endif
         &fileMenu,
 #if !defined(LITE_VERSION) && !defined(DISABLE_INTERPRETER)
         &scriptsMenu,

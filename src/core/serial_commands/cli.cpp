@@ -36,10 +36,12 @@ void SerialCli::setup() {
 
     createCryptoCommands(&_cli);
     createGpioCommands(&_cli);
+#if !defined(DISABLE_ADDON_MODULES)
     createIrCommands(&_cli);
-    createPowerCommands(&_cli);
     createRfCommands(&_cli);
     createRfidCommands(&_cli);
+#endif
+    createPowerCommands(&_cli);
     createSettingsCommands(&_cli);
     createStorageCommands(&_cli);
     createUtilCommands(&_cli);

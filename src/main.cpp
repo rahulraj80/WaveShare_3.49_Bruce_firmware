@@ -231,12 +231,14 @@ void setup_gpio() {
     // Smoochiee v2 uses a AW9325 tro control GPS, MIC, Vibro and CC1101 RX/TX powerlines
     ioExpander.init(IO_EXPANDER_ADDRESS, &Wire);
 
+#if !defined(DISABLE_ADDON_MODULES)
     initCC1101once(acquireSPIBus(
         bruceConfigPins.CC1101_bus.sck, bruceConfigPins.CC1101_bus.miso, bruceConfigPins.CC1101_bus.mosi
     ));
     // acquireSPIBus() returns nullptr when these pins have no hardware controller left (e.g.
     // ARDUINO_M5STICK_C_PLUS and others that don't share SPI with the display/SD/aux bus);
     // initCC1101once(NULL) lets the driver fall back to managing the default SPI object itself.
+#endif
 }
 
 /*********************************************************************

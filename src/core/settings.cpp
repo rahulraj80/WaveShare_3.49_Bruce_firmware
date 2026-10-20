@@ -619,6 +619,7 @@ void setEvilGatewayIp() {
     loopOptions(options, bruceConfig.evilPortalGatewayIp == "192.168.4.1" ? 1 : 0);
 }
 
+#if !defined(DISABLE_ADDON_MODULES) // fork: only RFMenu uses these
 /*********************************************************************
 **  Function: setRFModuleMenu
 **  Handles Menu to set the RF module in use
@@ -731,6 +732,7 @@ void setRFFreqMenu() {
     bruceConfigPins.setRfFreq(433.92); // reset to default
     delay(1000);
 }
+#endif
 
 /*********************************************************************
 **  Function: setRFIDModuleMenu

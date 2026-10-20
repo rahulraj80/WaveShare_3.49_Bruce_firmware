@@ -26,16 +26,18 @@ public:
     ClockMenu clockMenu;
     ConnectMenu connectMenu;
     ConfigMenu configMenu;
+#if !defined(DISABLE_ADDON_MODULES)
     FMMenu fmMenu;
     GpsMenu gpsMenu;
     IRMenu irMenu;
     NRF24Menu nrf24Menu;
-    OthersMenu othersMenu;
     RFIDMenu rfidMenu;
     RFMenu rfMenu;
+#endif
+    OthersMenu othersMenu;
     ScriptsMenu scriptsMenu;
     WifiMenu wifiMenu;
-#if !defined(LITE_VERSION)
+#if !defined(LITE_VERSION) && !defined(DISABLE_ADDON_MODULES)
     LoRaMenu loraMenu;
     EthernetMenu ethernetMenu;
 #endif
