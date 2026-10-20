@@ -2524,6 +2524,10 @@ bool MultiConnectionAttack::nrf24JamAttack(int jamMode) {
 }
 
 bool MultiConnectionAttack::jamAndConnect(NimBLEAddress target) {
+#if defined(DISABLE_ADDON_MODULES)
+    showAttackResult(false, "NRF24 support not built");
+    return false;
+#else
     AutoCleanup cleanup([]() { BLEStateManager::deinitBLE(true); });
 
     if (!confirmAttack("Jam BLE while attempting exploit connection?")) return false;
@@ -2560,6 +2564,7 @@ bool MultiConnectionAttack::jamAndConnect(NimBLEAddress target) {
     }
     showAttackResult(false, "Jam & Connect attack failed");
     return false;
+#endif
 }
 
 void MultiConnectionAttack::cleanup() {
