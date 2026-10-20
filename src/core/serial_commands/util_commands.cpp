@@ -148,6 +148,7 @@ uint32_t helpCallback(cmd *c) {
     serialDevice->println("  sniffer - Starts Raw Sniffer");
     serialDevice->println("\nWebUI Commands:");
     serialDevice->println("  webui      - WebUI Webserver start");
+#if !defined(DISABLE_ADDON_MODULES)
     serialDevice->println("\nIR Commands:");
     serialDevice->println("  ir rx <timeout>      - Read an IR signal and print the dump on serialDevice->");
     serialDevice->println(
@@ -176,6 +177,7 @@ uint32_t helpCallback(cmd *c) {
         "  subghz tx_from_file <sub file path> [hide default UI true/false] - Send an RF signal "
         "saved in storage. Optionally hide the default UI."
     );
+#endif
 
     serialDevice->println("\nAudio Commands:");
     serialDevice->println("  music_player <audio file path>  - Play an audio file.");
