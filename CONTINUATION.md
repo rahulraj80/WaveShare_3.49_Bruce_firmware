@@ -4,7 +4,7 @@ Read this first after any interruption. Plans and hardware facts live in the Lau
 `C:\Users\rahul\OpenCode\WaveShare_3.49_Launcher\notes\` (`ports/bruce.md`, `01-hardware-reference.md`).
 
 ## Rules
-- Branch `ws349-port`. Push to origin (rahulraj80 fork) only. No AI attribution in commits.
+- Commit to `main` (owner, 2026-10-20). Push to origin (rahulraj80 fork) only. No AI attribution in commits.
 - Never build on windows-box: push, then build on `auto` in `~/scripts/WaveShare_3.49_Bruce_firmware`
   with `~/.local/bin/pio run -e waveshare-esp32-s3-touch-lcd-349`.
 
