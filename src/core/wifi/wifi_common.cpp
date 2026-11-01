@@ -53,7 +53,11 @@ void ensureWifiPlatform() {
 
 bool _wifiConnect(const String &ssid, int encryption) {
     String password = bruceConfig.getWifiPassword(ssid);
-    if (password == "" && encryption > 0) { password = keyboard(password, 63, "Network Password:", true); }
+    if (password == "" && encryption > 0) {
+        password = keyboard(password, 63, "Network Password:", true);
+        if (password == "\x1B") return false;
+        bruceConfig.addWifiCredential(ssid, password); // persist on entry
+    }
     if (password == "\x1B") return false;
     bool connected = _connectToWifiNetwork(ssid, password);
     bool retry = false;
@@ -361,7 +365,7 @@ bool wifiConnecttoKnownNet(void) {
 
     bool result = false;
     int nets;
-    // WiFi.mode(WIFI_MODE_STA);
+    WiFi.mode(WIFI_MODE_STA);
     displayTextLine("Scanning Networks..");
     WiFi.disconnect(true, true);
     vTaskDelay(10 / portTICK_PERIOD_MS);

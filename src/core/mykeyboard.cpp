@@ -897,6 +897,7 @@ String generalKeyboard(
                 if (touchHandled) {
                     wakeUpScreen();
                     touchPoint.Clear();
+                    last_input_time = millis(); // advance debounce so a tap is one event
                     redraw = true;
                 }
             }

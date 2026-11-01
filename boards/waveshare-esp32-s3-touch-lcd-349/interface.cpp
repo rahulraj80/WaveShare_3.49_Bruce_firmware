@@ -138,10 +138,13 @@ void _setBrightness(uint8_t brightval) {
 **********************************************************************/
 void InputHandler(void) {
     static unsigned long tm = 0;
+    static bool wasPressed = false;
     if (millis() - tm < 200 && !LongPress) return;
 
     int16_t x, y;
-    if (axsTouchRead(x, y)) {
+    bool isPressed = axsTouchRead(x, y);
+
+    if (isPressed) {
         tm = millis();
         if (!wakeUpScreen()) AnyKeyPress = true;
         else return;
@@ -155,7 +158,14 @@ void InputHandler(void) {
         touchPoint.y = y;
         touchPoint.pressed = true;
         touchHeatMap(touchPoint);
+        wasPressed = true;
         return;
+    }
+
+    // Touch released: clear pressed state so a tap is one event (edge-triggered).
+    if (wasPressed) {
+        touchPoint.pressed = false;
+        wasPressed = false;
     }
 
     if (nxtPress || prvPress || slPress || ecPress) {
