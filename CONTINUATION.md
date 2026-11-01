@@ -27,5 +27,10 @@ Read this first after any interruption. Plans and hardware facts live in the Lau
       lines, screenshot 330,294 B, `launcher` -> Launcher and `boot brucew` -> Bruce.
 
 ## Next
+- **Bruce keyboard double-typing fix** (diagnosed 2026-11-01, not yet applied — requires build on `auto`):
+  1. `interface.cpp` `InputHandler()`: make touch edge-triggered — clear `touchPoint.pressed` on finger release so a tap is one event, not a sustained level.
+  2. `mykeyboard.cpp` `generalKeyboard()`: set `last_input_time` after touch handling (after line 901) so the 250 ms debounce gate closes.
+  3. `wifi_common.cpp` `wifiConnecttoKnownNet()`: uncomment `WiFi.mode(WIFI_MODE_STA)` before `WiFi.disconnect(true,true)`; persist credential on entry, not only after connect.
+  Build on `auto` with `~/.local/bin/pio run -e waveshare-esp32-s3-touch-lcd-349`, flash app-only. Never compile on windows-box.
 - Meshtastic port (Launcher repo `notes/ports/meshtastic.md`). D8 rotation plan: PMan backup of Bruce
   (app + data) to SD, remove Bruce, install Meshtastic; verify the backup/restore path once first.
