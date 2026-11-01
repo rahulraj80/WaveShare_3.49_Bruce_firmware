@@ -422,8 +422,11 @@ KeyboardAction handleKeyboardSelection(
             case 4: // BACK button
                 current_text = "\x1B";
                 return KEYBOARD_CANCEL;
+            case 5: // SHOW/HIDE button
+                mask_input = !mask_input;
+                return KEYBOARD_REDRAW;
 #if HAS_1_BUTTON
-            case 5: // Direction button
+            case 6: // Direction button
                 direction = !direction;
                 return KEYBOARD_REDRAW;
 #endif
@@ -461,6 +464,7 @@ String generalKeyboard(
     bool selection_made = false; // used for detecting if an key or a button was selected
     bool redraw = true;
     long last_input_time = millis(); // used for input debouncing
+    bool show_mask = false; // toggle to show/hide password characters
     // cursor coordinates: kep track of where the next character should be printed (in screen pixels)
     int cursor_x = 0;
     int cursor_y = 0;
@@ -476,7 +480,7 @@ String generalKeyboard(
 
     bool direction = true;
     bool last_dir = true;
-    const int buttons_number = 5 + HAS_1_BUTTON;
+    const int buttons_number = 6 + HAS_1_BUTTON;
 
     /*-----------------------------HOW btns_layout IS CALCULATED-----------------------------*/
     // const char *buttons_strings[] = {"OK", "CAP", "DEL", "SPACE", "BACK"};
@@ -517,8 +521,9 @@ String generalKeyboard(
         {3 * PAD + 6 * LW * FM,  3 * LW * FM, 3 * PAD + 6 * LW * FM + LW * FM / 2  }, // <-
         {4 * PAD + 9 * LW * FM,  3 * LW * FM, 4 * PAD + 9.5 * LW * FM + LW * FM / 2}, // _ {Space}
         {5 * PAD + 12 * LW * FM, 3 * LW * FM, 5 * PAD + 12 * LW * FM + LW * FM / 2 }, // Ex
+        {6 * PAD + 15 * LW * FM, 3 * LW * FM, 6 * PAD + 15 * LW * FM + LW * FM / 2 }, // Show/Hide
 #if HAS_1_BUTTON
-        {6 * PAD + 15 * LW * FM, 4 * LW * FM, 6 * PAD + 15 * LW * FM + LW * FM / 2 }, // R/D or L/U
+        {7 * PAD + 18 * LW * FM, 4 * LW * FM, 7 * PAD + 18 * LW * FM + LW * FM / 2 }, // R/D or L/U
 #endif
     };
 
@@ -660,9 +665,24 @@ String generalKeyboard(
                     );
                 } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
                 tft.drawString("Ex", btns_layout[4][2], top_button_text_y);
+                // SHOW/HIDE toggle
+                if (x == 5 && y == -1) {
+                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
+                    tft.fillRect(
+                        btns_layout[5][0],
+                        2,
+                        btns_layout[5][1],
+                        KBLH,
+                        getComplementaryColor2(bruceConfig.bgColor)
+                    );
+                } else if (show_mask) {
+                    tft.fillRect(btns_layout[5][0], 2, btns_layout[5][1], KBLH, TFT_DARKGREY);
+                    tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
+                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
+                tft.drawString(show_mask ? "Hide" : "Show", btns_layout[5][2], top_button_text_y);
 #if HAS_1_BUTTON
                 // DIRECTION
-                if (x == 5 && y == -1) {
+                if (x == 6 && y == -1) {
                     tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
                     tft.fillRect(
                         btns_layout[5][0],
@@ -873,8 +893,14 @@ String generalKeyboard(
                     current_text = "\x1B"; // ASCII ESC CHARACTER
                     break;
                 }
+                if (box_list[buttons_start_index + 5].contain(touchPoint.x, touchPoint.y)) { // SHOW/HIDE btn
+                    show_mask = !show_mask;
+                    mask_input = !mask_input;
+                    redraw = true;
+                    touchHandled = true;
+                }
 #if HAS_1_BUTTON
-                if (box_list[buttons_start_index + 5].contain(touchPoint.x, touchPoint.y)) { // DIRECTION btn
+                if (box_list[buttons_start_index + 6].contain(touchPoint.x, touchPoint.y)) { // DIRECTION btn
                     direction = !direction;
                     touchHandled = true;
                 }
