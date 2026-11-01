@@ -27,10 +27,11 @@ Read this first after any interruption. Plans and hardware facts live in the Lau
       lines, screenshot 330,294 B, `launcher` -> Launcher and `boot brucew` -> Bruce.
 
 ## Next
-- **Bruce keyboard double-typing fix** (committed 2026-11-01, NOT yet built or flashed — `auto` has a pre-existing broken build environment: cascading linker errors unrelated to these changes). All 3 source files compile cleanly (0 errors). Once the `auto` build environment is fixed, build with `~/.local/bin/pio run -e waveshare-esp32-s3-touch-lcd-349`, flash app-only. Never compile on windows-box.
-  1. `interface.cpp` `InputHandler()`: touch made edge-triggered — `wasPressed` tracking clears `touchPoint.pressed` on finger release so a tap is one event.
-  2. `mykeyboard.cpp` `generalKeyboard()`: `last_input_time = millis()` set after touch handling so the 250 ms debounce gate closes.
-  3. `wifi_common.cpp` `wifiConnecttoKnownNet()`: `WiFi.mode(WIFI_MODE_STA)` uncommented before `WiFi.disconnect(true,true)`.
-  4. `wifi_common.cpp` `_wifiConnect()`: `bruceConfig.addWifiCredential(ssid, password)` called on keyboard entry, not only after successful connect.
+- **Bruce keyboard double-typing fix** — BUILT AND FLASHED 2026-11-01. Built on `auto` with `~/.local/bin/pio run -e waveshare-esp32-s3-touch-lcd-349` (needed `-Wl,--allow-multiple-definition` due to updated PlatformIO packages), flashed app-only to slot `brucew` at `0xC60000` via esptool. Board verified booting to main menu.
+  Changes:
+  1. `interface.cpp` `InputHandler()`: touch made edge-triggered — `wasPressed` tracking clears `touchPoint.pressed` on finger release so a tap is one event. DONE
+  2. `mykeyboard.cpp` `generalKeyboard()`: `last_input_time = millis()` set after touch handling so the 250 ms debounce gate closes. DONE
+  3. `wifi_common.cpp` `wifiConnecttoKnownNet()`: `WiFi.mode(WIFI_MODE_STA)` uncommented before `WiFi.disconnect(true,true)`. DONE
+  4. `wifi_common.cpp` `_wifiConnect()`: `bruceConfig.addWifiCredential(ssid, password)` called on keyboard entry, not only after successful connect. DONE
 - Meshtastic port (Launcher repo `notes/ports/meshtastic.md`). D8 rotation plan: PMan backup of Bruce
   (app + data) to SD, remove Bruce, install Meshtastic; verify the backup/restore path once first.
