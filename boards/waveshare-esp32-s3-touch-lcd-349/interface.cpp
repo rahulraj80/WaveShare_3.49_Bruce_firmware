@@ -156,7 +156,12 @@ void InputHandler(void) {
         }
         touchPoint.x = x;
         touchPoint.y = y;
-        touchPoint.pressed = true;
+        // Edge-triggered: only set pressed=true on initial press, not on every
+        // poll while the finger is held down. Otherwise generalKeyboard() sees
+        // touchPoint.pressed=true on every loop iteration and double-types.
+        if (!wasPressed) {
+            touchPoint.pressed = true;
+        }
         touchHeatMap(touchPoint);
         wasPressed = true;
         return;
