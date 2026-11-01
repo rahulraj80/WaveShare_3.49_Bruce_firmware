@@ -507,23 +507,31 @@ String generalKeyboard(
     /*---------------------------------------------------------------------------------------*/
 
     const int PAD = 2;
+    const int LEFT_COL_W = 200;
+    const int KEY_COL_X = 200;
+    const int KEY_COL_W = tftWidth - KEY_COL_X; // 440px
     const int KBLH = 6 + LH * FM;
     const int counter_height = LH * FP;
     const int top_button_text_y = 2 + (KBLH - LH * FM) / 2;
     const int counter_y = KBLH + 4;
-    const int textbox_y = KBLH + counter_height + 5;
+    const int textbox_y = KBLH + btn_rows * (KBLH + 2) + 4; // below 2 button rows
     const int textbox_text_y = textbox_y + 2;
-    const int keyboard_start_y = textbox_y + KBLH + 2;
+    const int keyboard_start_y = 0; // keyboard fills full height on right column
 
+    // Left column buttons: 2 rows x 3 cols
+    const int btn_rows = 2;
+    const int btn_cols = 3;
+    const int btn_w = LEFT_COL_W / btn_cols;
+    const int btn_h = KBLH;
     const int btns_layout[buttons_number][3] = {
-        {1 * PAD + 0 * LW * FM,  3 * LW * FM, 1 * PAD + 0 * LW * FM + LW * FM / 2  }, // Ok
-        {2 * PAD + 3 * LW * FM,  3 * LW * FM, 2 * PAD + 3 * LW * FM + LW * FM / 2  }, // ab/A@
-        {3 * PAD + 6 * LW * FM,  3 * LW * FM, 3 * PAD + 6 * LW * FM + LW * FM / 2  }, // <-
-        {4 * PAD + 9 * LW * FM,  3 * LW * FM, 4 * PAD + 9.5 * LW * FM + LW * FM / 2}, // _ {Space}
-        {5 * PAD + 12 * LW * FM, 3 * LW * FM, 5 * PAD + 12 * LW * FM + LW * FM / 2 }, // Ex
-        {6 * PAD + 15 * LW * FM, 3 * LW * FM, 6 * PAD + 15 * LW * FM + LW * FM / 2 }, // Show/Hide
+        {0 * btn_w + PAD,         btn_w - 2 * PAD, 0 * btn_w + btn_w / 2}, // OK
+        {1 * btn_w + PAD,         btn_w - 2 * PAD, 1 * btn_w + btn_w / 2}, // CAPS
+        {2 * btn_w + PAD,         btn_w - 2 * PAD, 2 * btn_w + btn_w / 2}, // DEL
+        {0 * btn_w + PAD,         btn_w - 2 * PAD, 0 * btn_w + btn_w / 2}, // SPACE
+        {1 * btn_w + PAD,         btn_w - 2 * PAD, 1 * btn_w + btn_w / 2}, // BACK
+        {2 * btn_w + PAD,         btn_w - 2 * PAD, 2 * btn_w + btn_w / 2}, // Show/Hide
 #if HAS_1_BUTTON
-        {7 * PAD + 18 * LW * FM, 4 * LW * FM, 7 * PAD + 18 * LW * FM + LW * FM / 2 }, // R/D or L/U
+        {3 * btn_w + PAD,         btn_w - 2 * PAD, 3 * btn_w + btn_w / 2}, // R/D or L/U
 #endif
     };
 
@@ -546,7 +554,7 @@ String generalKeyboard(
             box_list[k].key = keys[j][i][0];
             box_list[k].key_sh = keys[j][i][1];
             box_list[k].color = ~bruceConfig.bgColor;
-            box_list[k].x = i * key_width;
+            box_list[k].x = KEY_COL_X + i * key_width;
             box_list[k].y = j * key_height + keyboard_start_y;
             box_list[k].w = key_width;
             box_list[k].h = key_height;
@@ -554,15 +562,15 @@ String generalKeyboard(
         }
     }
     const int buttons_start_index = k;
-    // Setup buttons_strings touch boxes
+    // Setup buttons_strings touch boxes - 2 rows x 3 cols in left column
     for (int i = 0; i < buttons_number; i++) {
         box_list[k].key = ' ';
         box_list[k].key_sh = ' ';
         box_list[k].color = ~bruceConfig.bgColor;
         box_list[k].x = btns_layout[i][0];
-        box_list[k].y = 0;
+        box_list[k].y = (i < btn_cols) ? 0 : KBLH + 2;
         box_list[k].w = btns_layout[i][1];
-        box_list[k].h = KBLH + 2;
+        box_list[k].h = KBLH;
         k++;
     }
 
@@ -583,120 +591,29 @@ String generalKeyboard(
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
 
-            // Draw the top row buttons_strings
-            if (y < 0 || old_y < 0 || caps != last_caps || direction != last_dir) {
-                last_caps = caps;
-                last_dir = direction;
-                tft.fillRect(0, 1, tftWidth, KBLH + 2, bruceConfig.bgColor);
-                // Draw the buttons_strings borders
-                for (int i = 0; i < buttons_number; ++i) {
-                    tft.drawRect(
-                        btns_layout[i][0],
-                        2,
-                        btns_layout[i][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
+            // Draw buttons in 2 rows x 3 cols in left column
+                const char *btn_labels[6] = {"Ok", "CAP", "DEL", "SPACE", "Back", "Show/Hide"};
+                const char *btn_labels_caps[6] = {"Ok", "ab", "<-", "_", "Ex", show_mask ? "Hide" : "Show"};
+                for (int i = 0; i < buttons_number; i++) {
+                    int btn_row = i / btn_cols;
+                    int btn_col = i % btn_cols;
+                    int btn_y = btn_row * (KBLH + 2);
+                    bool is_selected = (x == i && y == -1);
+                    bool is_active = false;
+                    if (i == 1) is_active = caps;      // CAPS
+                    if (i == 5) is_active = show_mask; // Show/Hide
+                    
+                    if (is_selected) {
+                        tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
+                        tft.fillRect(btns_layout[i][0], btn_y + 2, btns_layout[i][1], KBLH, getComplementaryColor2(bruceConfig.bgColor));
+                    } else if (is_active) {
+                        tft.fillRect(btns_layout[i][0], btn_y + 2, btns_layout[i][1], KBLH, TFT_DARKGREY);
+                        tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
+                    } else {
+                        tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
+                    }
+                    tft.drawString(btn_labels_caps[i], btns_layout[i][0] + 4, btn_y + top_button_text_y);
                 }
-
-                tft.drawRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
-
-                /* Highlight the corresponding button when the user cursor is over it */
-                // OK
-                if (x == 0 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[0][0],
-                        2,
-                        btns_layout[0][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("Ok", btns_layout[0][2], top_button_text_y);
-                // CAP
-                if (x == 1 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[1][0],
-                        2,
-                        btns_layout[1][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else if (caps) {
-                    tft.fillRect(btns_layout[1][0], 2, btns_layout[1][1], KBLH, TFT_DARKGREY);
-                    tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString(caps ? "ab" : "A@", btns_layout[1][2], top_button_text_y);
-                // DEL
-                if (x == 2 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[2][0],
-                        2,
-                        btns_layout[2][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("<-", btns_layout[2][2], top_button_text_y);
-                // SPACE
-                if (x == 3 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[3][0],
-                        2,
-                        btns_layout[3][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("_", btns_layout[3][2], top_button_text_y);
-                // BACK
-                if (x == 4 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[4][0],
-                        2,
-                        btns_layout[4][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString("Ex", btns_layout[4][2], top_button_text_y);
-                // SHOW/HIDE toggle
-                if (x == 5 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[5][0],
-                        2,
-                        btns_layout[5][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else if (show_mask) {
-                    tft.fillRect(btns_layout[5][0], 2, btns_layout[5][1], KBLH, TFT_DARKGREY);
-                    tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString(show_mask ? "Hide" : "Show", btns_layout[5][2], top_button_text_y);
-#if HAS_1_BUTTON
-                // DIRECTION
-                if (x == 6 && y == -1) {
-                    tft.setTextColor(bruceConfig.bgColor, getComplementaryColor2(bruceConfig.bgColor));
-                    tft.fillRect(
-                        btns_layout[5][0],
-                        2,
-                        btns_layout[5][1],
-                        KBLH,
-                        getComplementaryColor2(bruceConfig.bgColor)
-                    );
-                } else if (!direction) {
-                    tft.fillRect(btns_layout[5][0], 2, btns_layout[5][1], KBLH, TFT_DARKGREY);
-                    tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), TFT_DARKGREY);
-                } else tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
-                tft.drawString(direction ? "R/D" : "L/U", btns_layout[5][2], top_button_text_y);
-#endif
             }
 
             // Prints the chars counter
@@ -723,7 +640,7 @@ String generalKeyboard(
             // reset the text box if needed
             if (current_text.length() == (max_FM_size) || current_text.length() == (max_FM_size + 1) ||
                 current_text.length() == (max_FP_size) || current_text.length() == (max_FP_size + 1))
-                tft.fillRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.bgColor);
+                tft.fillRect(3, textbox_y, LEFT_COL_W - 3, KBLH, bruceConfig.bgColor);
             // write the text
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor));
 
@@ -759,7 +676,7 @@ String generalKeyboard(
                 );
             }
             // Draw the textbox border again(?)
-            tft.drawRect(3, textbox_y, tftWidth - 3, KBLH, bruceConfig.priColor); // typed string border
+            tft.drawRect(3, textbox_y, LEFT_COL_W - 3, KBLH, bruceConfig.priColor); // typed string border
 
             tft.setTextColor(getComplementaryColor2(bruceConfig.bgColor), bruceConfig.bgColor);
             tft.setTextSize(FM);
@@ -767,8 +684,8 @@ String generalKeyboard(
             // Draw the actual keyboard
             for (int i = 0; i < KeyboardHeight; i++) {
                 for (int j = 0; j < KeyboardWidth; j++) {
-                    // key coordinates
-                    int key_x = j * key_width;
+                    // key coordinates - keyboard is in right column starting at KEY_COL_X
+                    int key_x = KEY_COL_X + j * key_width;
                     int key_y = i * key_height + keyboard_start_y;
 
                     // Use the previous coordinates to redraw only the previous letter
