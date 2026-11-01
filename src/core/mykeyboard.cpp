@@ -514,14 +514,15 @@ String generalKeyboard(
     const int counter_height = LH * FP;
     const int top_button_text_y = 2 + (KBLH - LH * FM) / 2;
     const int counter_y = KBLH + 4;
-    const int textbox_y = KBLH + btn_rows * (KBLH + 2) + 4; // below 2 button rows
-    const int textbox_text_y = textbox_y + 2;
-    const int keyboard_start_y = 0; // keyboard fills full height on right column
 
     // Left column buttons: 2 rows x 3 cols
     const int btn_rows = 2;
     const int btn_cols = 3;
     const int btn_w = LEFT_COL_W / btn_cols;
+
+    const int textbox_y = KBLH + btn_rows * (KBLH + 2) + 4; // below 2 button rows
+    const int textbox_text_y = textbox_y + 2;
+    const int keyboard_start_y = 0; // keyboard fills full height on right column
     const int btn_h = KBLH;
     const int btns_layout[buttons_number][3] = {
         {0 * btn_w + PAD,         btn_w - 2 * PAD, 0 * btn_w + btn_w / 2}, // OK
